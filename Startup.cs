@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Middleware.Middlewares;
 
 namespace Middleware
 {
@@ -20,14 +21,7 @@ namespace Middleware
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {   // Middlewares inline
             // Adicionado Tempo inicio e fim do Middleware
-            app.Use(async (context, next) =>
-            {
-                context.Response.ContentType = "text/plain; charset=utf-8";
-                var watch = Stopwatch.StartNew();
-                await next();
-                watch.Stop();
-                await context.Response.WriteAsync($"\nTempo de execução: {watch.ElapsedMilliseconds} ms");
-            });
+            app.UseMiddleware<TempoExecucao>();
 
 
             // Adicionado Middleware
