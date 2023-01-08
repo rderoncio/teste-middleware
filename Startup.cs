@@ -25,26 +25,27 @@ namespace Middleware
             // app.UseMiddleware<TempoExecucao>();
             app.UseTempoExecucao();
 
+            // Criando ramificação para parâmetro com pipeline alternativo
+            app.UseWhen(
+                context => context.Request.Query.ContainsKey("caminhoC"),
+                appC => 
+                {
+                    appC.Use(async (context, next) => 
+                    {
+                        await context.Response.WriteAsync("\nProcessado pela ramificação: '?CaminhoC'\n");
+                        await next();
+                    });
+                }
+            );
+
             // Criando ramificação para endpoint com pipeline alternativo
             app.Map("/caminhoB", appB =>
             {
                 appB.Run(async context =>
                 {
-                    await context.Response.WriteAsync("\nProcessado pela ramificação: '/CaminhoB'");
+                    await context.Response.WriteAsync("\nProcessado pela ramificação: '/CaminhoB'\n");
                 });
             });
-
-            // Criando ramificação para parâmetro com pipeline alternativo
-            app.MapWhen(
-                context => context.Request.Query.ContainsKey("caminhoC"),
-                appC => 
-                {
-                    appC.Run(async context => 
-                    {
-                        await context.Response.WriteAsync("\nProcessado pela ramificação: '?CaminhoC'");
-                    });
-                }
-            );
 
             // Adicionado Middleware
             app.Use(async (context, next) =>
@@ -59,7 +60,7 @@ namespace Middleware
                 await context.Response.WriteAsync("<<<");
             });
 
-            // Middleware Final
+            // Adicionado Middleware Final
             app.Run(async context =>
             {
                 await context.Response.WriteAsync(" Middleware Terminal ");
