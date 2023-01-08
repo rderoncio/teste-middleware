@@ -19,41 +19,48 @@ namespace Middleware
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {   // Middlewares inline
+        {   
+            // Middlewares inline
             // Adicionado Tempo inicio e fim do Middleware
-            app.UseMiddleware<TempoExecucao>();
+            // app.UseMiddleware<TempoExecucao>();
+            app.UseTempoExecucao();
 
+            // Criando ramificação para endpoint com pipeline alternativo
+            app.Map("/caminhoB", appB =>
+            {
+                appB.Run(async context =>
+                {
+                    await context.Response.WriteAsync("\nProcessado pela ramificação: '/CaminhoB'");
+                });
+            });
+
+            // Criando ramificação para parâmetro com pipeline alternativo
+            app.MapWhen(
+                context => context.Request.Query.ContainsKey("caminhoC"),
+                appC => 
+                {
+                    appC.Run(async context => 
+                    {
+                        await context.Response.WriteAsync("\nProcessado pela ramificação: '?CaminhoC'");
+                    });
+                }
+            );
 
             // Adicionado Middleware
             app.Use(async (context, next) =>
             {
                 // Middleware chamado no inicio
-                await context.Response.WriteAsync("===");
+                await context.Response.WriteAsync(">>>");
 
                 // Middleware chamado o proximo
                 await next();
 
                 // Middleware chamado no final
-                await context.Response.WriteAsync("===");
-            });
-            
-            app.Use(async (context, next) =>
-            {
-                await context.Response.WriteAsync(">>>");
-                await next();
                 await context.Response.WriteAsync("<<<");
             });
 
-
-            app.Use(async (context, next) =>
-            {
-                await context.Response.WriteAsync("[[[");
-                await next();
-                await context.Response.WriteAsync("]]]");
-            });
-
             // Middleware Final
-            app.Run(async context => 
+            app.Run(async context =>
             {
                 await context.Response.WriteAsync(" Middleware Terminal ");
             });
